@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#ffffff">
+<link rel="manifest" href="/manifest.webmanifest">
+<title>Dashboard - Vehicle Assistant</title><link rel="stylesheet" href="/style.css?v=3">
+<style>.dates{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}.dates input{padding:8px;font-size:.9rem}.dates label{margin:6px 0 2px;font-size:.8rem}
+.exp-soon{color:var(--warn);font-weight:600}.exp-bad{color:var(--danger);font-weight:600}.thread{margin:8px 0;display:grid;gap:6px}.thread div{padding:6px 10px;border-radius:12px;max-width:90%;font-size:.92rem}
+.t-owner{background:var(--brand);color:var(--brand-ink);justify-self:end}.t-scanner{background:var(--bg2);border:1px solid var(--line)}</style>
+</head><body><div class="wrap wide">
+<h1 id="hello">Dashboard</h1>
+<p class="sub">Alerts from people who scanned your stickers. Your number is never shown.</p>
+
+<div class="cols"><section>
+<div class="card">
+  <div class="row between"><h2 style="margin:0">Alerts <span id="badge" class="badge hide"></span></h2>
+    <button class="btn ghost sm" id="markRead">Mark all read</button></div>
+  <div id="inbox" style="margin-top:8px"><p class="meta">No alerts yet.</p></div>
+  <p class="meta hide" id="blockInfo" style="margin:12px 0 0"></p>
+  <div style="margin-top:12px" class="row">
+    <button class="btn sm" id="enablePush">Enable phone notifications</button>
+    <span class="meta" id="pushState"></span>
+  </div>
+</div>
+
+<div class="card" id="emailCard">
+  <h2 style="margin-bottom:6px">Email alerts</h2>
+  <div id="emailBody"></div>
+</div>
+</section><section>
+<h2>My vehicles</h2>
+<div id="vehicles"></div>
+
+<div class="card">
+  <h2>Add a vehicle</h2>
+  <form id="addF">
+    <label for="number">Vehicle number</label><input id="number" type="text" placeholder="MH12AB1234" required>
+    <label for="vlabel">Nickname (optional)</label><input id="vlabel" type="text" placeholder="My Swift">
+    <label class="check"><input type="checkbox" id="allowCall"><span>Let people tap &ldquo;Call owner&rdquo; (shows my phone number on the contact page)</span></label>
+    <button class="btn block">Create sticker</button>
+    <div id="addOut"></div>
+  </form>
+</div>
+</section></div>
+<script>
+const $=id=>document.getElementById(id);
+const J=(u,o={})=>fetch(u,{...o,headers:{'Content-Type':'application/json'},body:o.body&&JSON.stringify(o.body)}).then(async r=>{
+  if(r.status===401||r.status===403){location.href='/owner';throw new Error('login')}
+  const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||'Error');return j;});
+const el=(t,props={},...kids)=>{const e=Object.assign(document.createElement(t),props);kids.flat().forEach(k=>e.append(k));return e;};
+
+J('/api/me').then(u=>$('hello').textContent='Hi, '+u.name);
+
+function expClass(d){if(!d)return'';const days=Math.round((Date.parse(d+'T00:00:00Z')-Date.parse(new Date().toISOString().slice(0,10)+'T00:00:00Z'))/864e5);return days<0?'exp-bad':days<=30?'exp-soon':'';}
+function dateField(label,val,onSave){
+  const i=el('input',{type:'date',value:val||''});i.onchange=()=>{onSave(i.value);i.className=expClass(i.value);};i.className=expClass(val);
+  return el('div',{},el('label',{textContent:label}),i);
+}
+async function loadVehicles(){
+  const list=await J('/api/vehicles');const box=$('vehicles');box.replaceChildren();
+  if(!list.length)box.append(el('p',{className:'meta',textContent:'No vehicles yet. Add one below.'}));
+  list.forEach(v=>{
+    const save=patch=>J('/api/vehicles/'+v.id,{method:'PATCH',body:patch});
+    const call=el('input',{type:'checkbox',checked:v.allowCall});call.onchange=()=>save({allowCall:call.checked});
+    const away=el('input',{type:'text',value:v.awayMsg,maxLength:120,placeholder:'Away note shown to people, e.g. Back at 6 PM'});
+    away.onchange=()=>save({awayMsg:away.value});
+    const muted=v.muteUntil>Date.now();
+    const pause=el('select',{ariaLabel:'Pause alerts'},
+      el('option',{value:'-1',textContent:muted?'Paused until '+new Date(v.muteUntil).toLocaleString([],{hour:'2-digit',minute:'2-digit',day:'numeric',month:'short'}):'Alerts are on'}),
+      ...(muted?[el('option',{value:'0',textContent:'Turn alerts back on'})]:[]),
+      el('option',{value:'60',textContent:'Pause for 1 hour'}),el('option',{value:'480',textContent:'Pause for 8 hours'}),el('option',{value:'1440',textContent:'Pause for 24 hours'}));
+    pause.onchange=async()=>{if(pause.value==='-1')return;await save({muteMinutes:Number(pause.value)});loadVehicles();};
+    const del=el('button',{className:'btn danger sm',textContent:'Delete'});
+    del.onclick=async()=>{if(confirm('Delete '+v.number+'? Its sticker will stop working.')){await J('/api/vehicles/'+v.id,{method:'DELETE'});loadVehicles();loadInbox();}};
+    box.append(el('div',{className:'card'},
+      el('div',{className:'veh'},
+        el('img',{src:'/api/vehicles/'+v.id+'/qr.svg',alt:'QR for '+v.number}),
+        el('div',{className:'grow'},
+          el('div',{className:'plate',style:'font-size:1.2rem',textContent:v.number}),
+          el('div',{className:'meta',textContent:v.label||' '}),
+          el('div',{className:'row',style:'margin-top:8px'},
+            el('a',{className:'btn sm',href:'/sticker/'+v.id,textContent:'Print sticker'}),
+            el('a',{className:'btn ghost sm',href:v.url,target:'_blank',textContent:'Preview'}),
+            del))),
+      el('label',{textContent:'Pause alerts (messages are still saved, you just are not pinged)'}),pause,
+      el('label',{textContent:'Away note (optional)'}),away,
+      el('label',{className:'check'},call,el('span',{textContent:'Show "Call owner" button'})),
+      el('div',{className:'meta',textContent:'Reminders: you get an alert 30, 7 and 1 day before, and on the day.'}),
+      el('div',{className:'dates'},
+        dateField('Insurance expiry',v.insuranceExp,x=>save({insuranceExp:x})),
+        dateField('PUC expiry',v.pucExp,x=>save({pucExp:x})),
+        dateField('Next service',v.serviceExp,x=>save({serviceExp:x})))));
+  });
+}
+$('addF').onsubmit=async e=>{e.preventDefault();
+  try{await J('/api/vehicles',{method:'POST',body:{number:$('number').value,label:$('vlabel').value,allowCall:$('allowCall').checked}});
+    $('addF').reset();$('addOut').replaceChildren();loadVehicles();}
+  catch(err){$('addOut').replaceChildren(el('div',{className:'msg err',textContent:err.message}));}};
+
+let lastUnread=-1;const drafts={};
+async function loadInbox(){
+  // don't rebuild while the owner is typing a reply
+  if(document.activeElement&&document.activeElement.dataset&&document.activeElement.dataset.reply)return;
+  const msgs=await J('/api/messages');const box=$('inbox');box.replaceChildren();
+  const unread=msgs.filter(m=>!m.isRead).length;
+  $('badge').textContent=unread;$('badge').classList.toggle('hide',!unread);
+  document.title=(unread?`(${unread}) `:'')+'Dashboard - Vehicle Assistant';
+  if(unread>lastUnread&&lastUnread>=0)try{navigator.vibrate&&navigator.vibrate(200)}catch(_){}
+  lastUnread=unread;
+  if(!msgs.length)return box.append(el('p',{className:'meta',textContent:'No alerts yet.'}));
+  msgs.forEach(m=>{
+    const x=el('button',{className:'btn danger sm',textContent:'Dismiss'});
+    x.onclick=async()=>{await J('/api/messages/'+m.id,{method:'DELETE'});loadInbox();};
+    const title=m.kind==='service'?'Service update from '+m.sender:m.kind==='reminder'?'Reminder':m.kindText;
+    const parts=[el('strong',{textContent:title})];
+    if(m.text)parts.push(el('div',{textContent:m.kind==='service'||m.kind==='reminder'?m.text:'"'+m.text+'"'}));
+    if(m.contact)parts.push(el('div',{},'Scanner phone: ',el('a',{href:'tel:'+m.contact,textContent:m.contact})));
+    if(m.lat!=null)parts.push(el('div',{},el('a',{href:`https://www.openstreetmap.org/?mlat=${m.lat}&mlon=${m.lng}#map=18/${m.lat}/${m.lng}`,target:'_blank',rel:'noopener',textContent:'📍 See where they are'})));
+    parts.push(el('div',{className:'meta',textContent:(m.label||m.number)+' • '+new Date(m.created).toLocaleString()}));
+    if(m.silent)parts.push(el('div',{className:'meta',textContent:'Arrived while alerts were paused'}));
+    if(m.thread.length)parts.push(el('div',{className:'thread'},m.thread.map(t=>el('div',{className:'t-'+t.who,textContent:(t.who==='owner'?'You: ':'Them: ')+t.text}))));
+    if(m.canReply){
+      const r=el('input',{type:'text',maxLength:300,placeholder:'Reply (they never see your number)',value:drafts[m.id]||'',style:'flex:1 1 180px'});r.dataset.reply=m.id;
+      r.oninput=()=>drafts[m.id]=r.value;
+      const go=el('button',{className:'btn sm',textContent:'Reply'});
+      const send=async()=>{if(!r.value.trim())return;go.disabled=true;try{await J('/api/messages/'+m.id+'/reply',{method:'POST',body:{text:r.value}});delete drafts[m.id];r.blur();loadInbox();}catch(e){alert(e.message);go.disabled=false;}};
+      go.onclick=send;r.onkeydown=e=>{if(e.key==='Enter')send();};
+      parts.push(el('div',{className:'row',style:'margin-top:6px'},r,go));
+    }
+    const blk=m.canBlock?el('button',{className:'btn danger sm',textContent:'Block sender'}):null;
+    if(blk)blk.onclick=async()=>{if(!confirm('Block this sender? Their earlier and future messages will be hidden from you. They will not be told.'))return;
+      const r=await J('/api/messages/'+m.id+'/block',{method:'POST'});loadInbox();loadBlocks();};
+    box.append(el('div',{className:'inbox-item'+(m.isRead?'':' unread'),},...parts,el('div',{className:'row',style:'margin-top:6px'},x,...(blk?[blk]:[]))));
+  });
+}
+$('markRead').onclick=async()=>{await J('/api/messages/read',{method:'POST'});loadInbox();};
+async function loadBlocks(){
+  const {count}=await J('/api/blocks');const b=$('blockInfo');b.replaceChildren();b.classList.toggle('hide',!count);
+  if(!count)return;
+  const clr=el('button',{className:'btn ghost sm',textContent:'Unblock all',style:'margin-left:8px'});
+  clr.onclick=async()=>{await J('/api/blocks',{method:'DELETE'});loadBlocks();};
+  b.append(count+(count===1?' sender is':' senders are')+' blocked.',clr);
+}
+loadVehicles();loadInbox();loadBlocks();setInterval(loadInbox,8000);
+
+// ---- email alerts ----
+async function loadEmail(){
+  const me=await J('/api/me');const b=$('emailBody');b.replaceChildren();
+  if(!me.emailEnabled){
+    b.append(el('p',{className:'meta',textContent:'Email is not turned on for this server yet. The person running the server can enable it in the .env file (see the README). Phone notifications and this inbox still work.'}));return;}
+  if(me.emailVerified){
+    const off=el('button',{className:'btn danger sm',textContent:'Turn off'});
+    off.onclick=async()=>{await J('/api/email',{method:'DELETE'});loadEmail();};
+    b.append(el('p',{className:'meta',style:'margin-top:0',textContent:'Every alert is also emailed to'}),
+      el('div',{className:'row between'},el('strong',{textContent:me.email}),off),
+      el('p',{className:'meta',textContent:'Emails never include the phone number of the person who scanned.'}));return;}
+  const email=el('input',{type:'email',placeholder:'you@example.com',autocomplete:'email',ariaLabel:'Email address',style:'width:100%;padding:12px 13px;border:1.5px solid #b9beb6;border-radius:8px;font:inherit'});
+  const go=el('button',{className:'btn sm',textContent:'Send code',style:'margin-top:10px'});
+  const out=el('div');
+  go.onclick=async()=>{go.disabled=true;
+    try{await J('/api/email/start',{method:'POST',body:{email:email.value}});askCode(email.value);}
+    catch(e){out.replaceChildren(el('div',{className:'msg err',textContent:e.message}));go.disabled=false;}};
+  b.append(el('p',{className:'meta',style:'margin-top:0',textContent:'Get every alert by email too. We send a 6-digit code to check the address is yours.'}),email,go,out);
+}
+function askCode(addr){
+  const b=$('emailBody');b.replaceChildren();
+  const code=el('input',{type:'text',inputMode:'numeric',maxLength:6,placeholder:'6-digit code',autocomplete:'one-time-code',ariaLabel:'Verification code',style:'width:100%;padding:12px 13px;border:1.5px solid #b9beb6;border-radius:8px;font:inherit;letter-spacing:.2em'});
+  const go=el('button',{className:'btn sm',textContent:'Verify',style:'margin-top:10px'});
+  const back=el('button',{className:'btn ghost sm',textContent:'Use a different email',style:'margin-top:10px;margin-left:8px'});
+  const out=el('div');
+  go.onclick=async()=>{go.disabled=true;
+    try{await J('/api/email/verify',{method:'POST',body:{code:code.value}});loadEmail();}
+    catch(e){out.replaceChildren(el('div',{className:'msg err',textContent:e.message}));go.disabled=false;}};
+  back.onclick=loadEmail;
+  b.append(el('p',{className:'meta',style:'margin-top:0',textContent:'We sent a code to '+addr+'. It expires in 10 minutes. Check spam if you do not see it.'}),code,go,back,out);code.focus();
+}
+loadEmail();
+
+// ---- push notifications ----
+const b64=s=>{const p='='.repeat((4-s.length%4)%4),r=atob((s+p).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from(r,c=>c.charCodeAt(0));};
+async function pushSetup(ask){
+  if(!('serviceWorker' in navigator)||!('PushManager' in window)){$('pushState').textContent='Not supported in this browser (alerts still appear here).';$('enablePush').classList.add('hide');return;}
+  const reg=await navigator.serviceWorker.register('/sw.js');
+  let sub=await reg.pushManager.getSubscription();
+  if(!sub&&ask){
+    if(await Notification.requestPermission()!=='granted'){$('pushState').textContent='Permission denied.';return;}
+    const {key}=await J('/api/push/key');
+    sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64(key)});
+  }
+  if(sub){await J('/api/push/subscribe',{method:'POST',body:sub.toJSON()});$('pushState').textContent='Notifications on for this device.';$('enablePush').classList.add('hide');}
+}
+$('enablePush').onclick=()=>pushSetup(true).catch(e=>$('pushState').textContent='Failed: '+e.message+' (needs https or localhost)');
+pushSetup(false).catch(()=>{});
+</script></div><script src="/site.js?v=3"></script></body></html>

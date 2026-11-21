@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Print sticker</title>
+<style>
+body{margin:0;font-family:system-ui,Segoe UI,Roboto,sans-serif;background:#f4f5f2;display:flex;flex-direction:column;align-items:center;padding:20px;gap:16px}
+.sticker{width:min(10cm,100%);box-sizing:border-box;background:#fff;border:3px solid #000;border-radius:16px;padding:14px;text-align:center;color:#000}
+.sticker h1{margin:0 0 2px;font-size:20px;letter-spacing:.04em}
+.sticker small{display:block;font-size:12px}
+.sticker img{width:min(7cm,72vw);height:auto;aspect-ratio:1;display:block;margin:8px auto}
+.plate{font:700 22px ui-monospace,Menlo,Consolas,monospace;letter-spacing:.1em;margin-top:2px}
+.bar{display:flex;gap:8px}
+button,a{padding:10px 16px;border:0;border-radius:8px;background:#0b6bff;color:#fff;font:600 15px system-ui;cursor:pointer;text-decoration:none}
+a{background:#444}
+@media print{body{background:#fff;padding:0}.bar{display:none}.sticker{width:10cm}.sticker img{width:7cm}}
+</style></head><body>
+<div class="sticker">
+  <h1>SCAN TO CONTACT OWNER</h1>
+  <small>Wrong parking &bull; Lights on &bull; Emergency</small>
+  <img id="qr" alt="QR code">
+  <div class="plate" id="plate"></div>
+  <small>Owner's phone number is kept private</small>
+</div>
+<div class="bar"><button onclick="print()">Print</button><a href="/dashboard">Back</a></div>
+<script>
+const id=location.pathname.split('/').pop();
+fetch('/api/vehicles').then(r=>r.ok?r.json():Promise.reject()).then(list=>{
+  const v=list.find(x=>String(x.id)===id);if(!v)throw 0;
+  document.getElementById('plate').textContent=v.number;
+  document.getElementById('qr').src='/api/vehicles/'+v.id+'/qr.svg';
+}).catch(()=>location.href='/');
+</script></body></html>
