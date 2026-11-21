@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#ffffff"><meta name="robots" content="noindex">
+<link rel="manifest" href="/manifest.webmanifest">
+<title>Contact the vehicle owner</title><link rel="stylesheet" href="/style.css?v=3">
+</head><body><div class="wrap">
+<div class="top"><a class="brand" href="/">Vehicle<span>Assist</span></a>
+  <div class="row"><button class="btn ghost sm" id="lang" type="button">हिंदी</button><span class="pill on" id="priv"></span></div></div>
+<div class="chat" id="chat" aria-live="polite"></div>
+<div id="panel"></div>
+<script>
+const T={
+ en:{priv:'🔒 Number stays private',hi:'Hi! 👋 I will help you reach the vehicle owner without needing their phone number.',which:'Which vehicle do you want to reach? Type its number.',ph:'e.g. MH12AB1234',find:'Find vehicle',
+  found:(n,l)=>`Found it: ${n}${l?' ('+l+')':''}. The owner will be alerted instantly. Their phone number is never shown.`,away:'Owner note: ',issue:'What is the issue?',
+  details:'Want to add a message? You can also leave your number for a call back (optional).',msgPh:'e.g. Blocking gate B, please move',msgReq:'Type your message (required)',phone:'Your phone (optional)',
+  loc:'Share my location with the owner (optional)',send:'Notify owner',done:'Done ✅ The owner has been notified. Stay on this page to see their reply.',call:'📞 Call owner',home:'Back to home',
+  nf:'This sticker is not registered or was removed.',unreg:'This vehicle is not registered on the app yet',wait:'Waiting for the owner to reply…',owner:'Owner',reply:'Type a message',sendS:'Send',
+  prev:'You have an earlier conversation about this vehicle.',cont:'Continue it',new:'New alert',lang:'हिंदी',
+  cap:'This vehicle has had several alerts recently. Please wait a while before sending another.',rate:'Too many tries. Please wait a few minutes.',threadcap:'The message limit for this conversation has been reached.',
+  dup:'The owner was already told about this a moment ago. Thank you for helping!',muted:'The owner has paused alerts for now. Your message is saved and they will see it later.'},
+ hi:{priv:'🔒 आपका नंबर सुरक्षित',hi:'नमस्ते! 👋 मैं बिना फ़ोन नंबर के वाहन मालिक तक आपकी बात पहुँचाऊँगा।',which:'आप किस वाहन के मालिक से संपर्क करना चाहते हैं? उसका नंबर लिखें।',ph:'जैसे MH12AB1234',find:'वाहन खोजें',
+  found:(n,l)=>`मिल गया: ${n}${l?' ('+l+')':''}। मालिक को तुरंत सूचना मिलेगी। उनका फ़ोन नंबर कभी नहीं दिखता।`,away:'मालिक का संदेश: ',issue:'क्या समस्या है?',
+  details:'कोई संदेश जोड़ना चाहते हैं? वापस कॉल के लिए अपना नंबर भी दे सकते हैं (वैकल्पिक)।',msgPh:'जैसे: गेट B रोक रखा है, कृपया हटाएँ',msgReq:'अपना संदेश लिखें (ज़रूरी)',phone:'आपका फ़ोन (वैकल्पिक)',
+  loc:'मालिक के साथ मेरी लोकेशन साझा करें (वैकल्पिक)',send:'मालिक को सूचित करें',done:'हो गया ✅ मालिक को सूचना भेज दी गई। जवाब देखने के लिए इस पेज पर रहें।',call:'📞 मालिक को कॉल करें',home:'होम पर जाएँ',
+  nf:'यह स्टिकर पंजीकृत नहीं है या हटा दिया गया है।',unreg:'यह वाहन अभी ऐप पर पंजीकृत नहीं है',wait:'मालिक के जवाब का इंतज़ार…',owner:'मालिक',reply:'संदेश लिखें',sendS:'भेजें',
+  prev:'इस वाहन के बारे में आपकी पिछली बातचीत मौजूद है।',cont:'जारी रखें',new:'नया अलर्ट',lang:'English',
+  cap:'इस वाहन के मालिक को हाल ही में कई सूचनाएँ मिल चुकी हैं। कृपया कुछ देर बाद फिर कोशिश करें।',rate:'बहुत ज़्यादा कोशिशें। कृपया कुछ मिनट रुकें।',threadcap:'इस बातचीत में संदेशों की सीमा पूरी हो गई है।',
+  dup:'मालिक को इस बारे में अभी-अभी बताया जा चुका है। मदद के लिए धन्यवाद!',muted:'मालिक ने अभी सूचनाएँ रोक रखी हैं। आपका संदेश सेव है, वे बाद में देखेंगे।'},
+};
+const KH={wrong_parking:'आपका वाहन गलत या रास्ता रोकने वाली जगह खड़ा है',lights_on:'लाइट / इग्निशन चालू रह गया है',window_open:'खिड़की, दरवाज़ा या डिक्की खुली है',towing:'वाहन टो होने वाला है',damage:'आपके वाहन को नुकसान हो सकता है',emergency:'आपातकाल - तुरंत आइए',other:'अन्य संदेश'};
+let L=(()=>{try{return localStorage.getItem('lang')}catch(_){}})()||'en';
+const t=k=>T[L][k];
+const friendly=e=>({vehicle_cap:t('cap'),rate:t('rate'),thread_cap:t('threadcap')}[e.code]||e.message);
+const $=id=>document.getElementById(id);
+const chat=$('chat'),panel=$('panel');
+const J=(u,body)=>fetch(u,body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{}).then(async r=>{const j=await r.json().catch(()=>({}));if(!r.ok){const e=new Error(j.error||'Something went wrong');e.code=j.code;throw e;}return j;});
+const el=(tag,p={},...k)=>{const e=Object.assign(document.createElement(tag),p);k.flat().forEach(x=>e.append(x));return e;};
+const say=(x,who='bot')=>{chat.append(el('div',{className:'bub '+who,textContent:x}));scrollTo({top:document.body.scrollHeight,behavior:'smooth'});};
+const clear=()=>panel.replaceChildren();
+const store={get:k=>{try{return localStorage.getItem(k)}catch(_){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(_){}} ,del:k=>{try{localStorage.removeItem(k)}catch(_){}}};
+const pathTok=location.pathname.startsWith('/v/')?location.pathname.split('/').pop():null;
+let token=null,info=null,kind=null,pollTimer=null,step=null;
+const kindText=k=>L==='hi'&&KH[k.id]?KH[k.id]:k.text;
+
+$('lang').onclick=()=>{L=L==='en'?'hi':'en';store.set('lang',L);start();};
+function start(){clearInterval(pollTimer);chat.replaceChildren();$('lang').textContent=t('lang');$('priv').textContent=t('priv');say(t('hi'));
+  if(pathTok){token=pathTok;load();}else askNumber();}
+
+function askNumber(err){
+  clear();if(err)say(err);say(t('which'));
+  const inp=el('input',{className:'plate-input',type:'text',placeholder:t('ph'),autocomplete:'off',autocapitalize:'characters',ariaLabel:'Vehicle number'});
+  const go=el('button',{className:'btn block',style:'margin-top:10px',textContent:t('find')});
+  const submit=async()=>{const n=inp.value.trim();if(!n)return;go.disabled=true;say(n.toUpperCase(),'me');
+    try{const r=await J('/api/contact/lookup',{number:n});token=r.token;await load();}catch(e){askNumber(e.message==='This vehicle is not registered on the app yet'?t('unreg'):e.message);}};
+  go.onclick=submit;inp.onkeydown=e=>{if(e.key==='Enter')submit();};
+  panel.append(inp,go);inp.focus();
+  const pre=new URLSearchParams(location.search).get('n');
+  if(pre&&!window.__pre){window.__pre=1;inp.value=pre;submit();}
+}
+async function load(){
+  try{info=await J('/api/public/'+encodeURIComponent(token));}catch(e){clear();say(t('nf'));return;}
+  say(t('found')(info.number,info.label));
+  if(info.awayMsg)say(t('away')+info.awayMsg);
+  const saved=store.get('thr:'+token);
+  if(saved){try{await J('/api/thread/'+encodeURIComponent(saved));
+    clear();say(t('prev'));
+    panel.append(el('button',{className:'btn block',textContent:t('cont'),onclick:()=>showThread(saved)}),
+      el('button',{className:'btn ghost block',style:'margin-top:8px',textContent:t('new'),onclick:askIssue}));return;}catch(_){store.del('thr:'+token);}}
+  askIssue();
+}
+function askIssue(){
+  clear();say(t('issue'));
+  const box=el('div',{className:'chips'});
+  info.kinds.forEach(k=>box.append(el('button',{type:'button',textContent:kindText(k),onclick:()=>{kind=k;say(kindText(k),'me');askDetails();}})));
+  panel.append(box);
+}
+function askDetails(){
+  clear();say(t('details'));
+  const text=el('textarea',{maxLength:300,placeholder:kind.id==='other'?t('msgReq'):t('msgPh'),ariaLabel:'Message'});
+  const contact=el('input',{type:'tel',placeholder:t('phone'),autocomplete:'tel',ariaLabel:t('phone'),style:'margin-top:8px'});
+  const loc=el('input',{type:'checkbox'});
+  const send=el('button',{className:'btn block',style:'margin-top:10px',textContent:t('send')});
+  const out=el('div');
+  send.onclick=async()=>{
+    send.disabled=true;
+    try{
+      let lat=null,lng=null;
+      if(loc.checked){try{const p=await new Promise((ok,no)=>navigator.geolocation.getCurrentPosition(ok,no,{timeout:8000,maximumAge:60000}));lat=p.coords.latitude;lng=p.coords.longitude;}catch(_){}}
+      const r=await J('/api/public/'+encodeURIComponent(token)+'/alert',{kind:kind.id,text:text.value,contact:contact.value,lat,lng});
+      if(r.duplicate){clear();say(t('dup'));panel.append(el('a',{className:'btn ghost block',href:'/',textContent:t('home')}));return;}
+      store.set('thr:'+token,r.thread);
+      if(text.value.trim())say(text.value.trim(),'me');
+      say(t('done'));
+      if(r.muted)say(t('muted'));
+      showThread(r.thread,true);
+    }catch(e){send.disabled=false;out.replaceChildren(el('div',{className:'msg err',textContent:friendly(e)}));}
+  };
+  panel.append(text,contact,el('label',{className:'check'},loc,el('span',{textContent:t('loc')})),send,out);text.focus();
+}
+function showThread(secret,fresh){
+  clear();
+  if(!fresh)chat.replaceChildren();
+  const shown=new Set();let waiting=null;
+  const render=d=>{
+    if(!fresh&&!shown.has('root')){shown.add('root');say(d.kindText+(d.text?': '+d.text:''),'me');}
+    d.msgs.forEach(m=>{const k=m.id||m.created+m.who+m.text;if(shown.has(k))return;shown.add(k);if(waiting){waiting.remove();waiting=null;}
+      const b=el('div',{className:'bub '+(m.who==='owner'?'bot':'me')},m.who==='owner'?el('small',{textContent:t('owner')}):'',m.text);chat.append(b);});
+    if(!d.msgs.some(m=>m.who==='owner')&&!waiting){waiting=el('div',{className:'bub bot',style:'opacity:.7',textContent:t('wait')});chat.append(waiting);}
+    scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
+  };
+  const poll=()=>J('/api/thread/'+encodeURIComponent(secret)).then(render).catch(()=>{});
+  poll();clearInterval(pollTimer);pollTimer=setInterval(()=>{if(!document.hidden)poll();},5000);
+  const inp=el('input',{type:'text',maxLength:300,placeholder:t('reply'),ariaLabel:t('reply')});
+  const go=el('button',{className:'btn block',style:'margin-top:8px',textContent:t('sendS')});
+  const sendIt=async()=>{const v=inp.value.trim();if(!v)return;go.disabled=true;try{await J('/api/thread/'+encodeURIComponent(secret),{text:v});inp.value='';await poll();}catch(e){say(friendly(e));}go.disabled=false;};
+  go.onclick=sendIt;inp.onkeydown=e=>{if(e.key==='Enter')sendIt();};
+  panel.append(inp,go);
+  if(info&&info.allowCall&&info.phone)panel.append(el('a',{className:'btn ghost block',style:'margin-top:8px',href:'tel:'+info.phone,textContent:t('call')}));
+  panel.append(el('a',{className:'btn ghost block',style:'margin-top:8px',href:'/',textContent:t('home')}));
+}
+start();
+</script></div></body></html>

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Contact vehicle owner</title><link rel="stylesheet" href="/style.css">
+</head><body><div class="wrap">
+<div id="loading" class="sub">Loading&hellip;</div>
+<div id="missing" class="card hide"><h2>Sticker not found</h2><p class="sub">This QR sticker is not registered or was removed.</p></div>
+<div id="main" class="hide">
+  <p class="meta" style="margin:0">Vehicle</p>
+  <div class="plate" id="plate"></div>
+  <p class="sub" id="label"></p>
+  <div class="card">
+    <h2>Why are you contacting the owner?</h2>
+    <p class="meta" style="margin-top:-6px">The owner is notified instantly. Your number is shared only if you add it.</p>
+    <div class="reasons" id="reasons"></div>
+    <label for="text">Message (optional)</label>
+    <textarea id="text" maxlength="300" placeholder="e.g. Blocking gate B, please move"></textarea>
+    <label for="contact">Your phone number (optional, so the owner can call you)</label>
+    <input id="contact" type="tel" autocomplete="tel">
+    <button class="btn block" id="send" style="margin-top:16px" disabled>Notify owner</button>
+    <div id="out"></div>
+  </div>
+  <a id="call" class="btn ghost block hide">Call owner</a>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const token=location.pathname.split('/').pop();
+let kind=null;
+(async()=>{
+  const r=await fetch('/api/public/'+encodeURIComponent(token));
+  $('loading').classList.add('hide');
+  if(!r.ok){$('missing').classList.remove('hide');return;}
+  const j=await r.json();
+  $('plate').textContent=j.number;$('label').textContent=j.label;
+  j.kinds.forEach(k=>{const b=document.createElement('button');b.type='button';b.textContent=k.text;
+    b.onclick=()=>{kind=k.id;[...$('reasons').children].forEach(c=>c.classList.toggle('sel',c===b));$('send').disabled=false;};
+    $('reasons').appendChild(b);});
+  if(j.allowCall&&j.phone){$('call').href='tel:'+j.phone;$('call').classList.remove('hide');}
+  $('main').classList.remove('hide');
+})();
+$('send').onclick=async()=>{
+  $('send').disabled=true;
+  const r=await fetch('/api/public/'+encodeURIComponent(token)+'/alert',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({kind,text:$('text').value,contact:$('contact').value})});
+  const j=await r.json().catch(()=>({}));
+  const o=$('out');o.innerHTML='<div class="msg"></div>';const m=o.firstChild;
+  if(r.ok){m.className='msg ok';m.textContent='Done. The owner has been notified. Thank you!';}
+  else{m.className='msg err';m.textContent=j.error||'Could not send. Try again.';$('send').disabled=false;}
+};
+</script></div></body></html>
