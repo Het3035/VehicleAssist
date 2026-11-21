@@ -1,0 +1,2 @@
+Hanken Grotesk and Noto Sans Devanagari are licensed under the SIL Open Font License 1.1 (https://openfontlicense.org).
+These files are used only to draw the "Download my data" PDF.

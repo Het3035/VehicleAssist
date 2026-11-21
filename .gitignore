@@ -10,11 +10,13 @@
 
 # SQLite databases & application storage
 data/
+backups/
 *.db
 *.db-shm
 *.db-wal
 *.sqlite
 *.sqlite3
+*.tmp
 
 # Node dependencies & logs
 node_modules/

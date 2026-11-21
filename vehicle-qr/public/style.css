@@ -8,14 +8,18 @@
 @font-face{font-family:'Hanken Grotesk';font-weight:700;font-style:normal;font-display:swap;src:url(/fonts/hanken-grotesk-latin-700-normal.woff2) format('woff2')}
 @font-face{font-family:'Noto Sans Devanagari';font-weight:400;font-style:normal;font-display:swap;src:url(/fonts/noto-sans-devanagari-devanagari-400-normal.woff2) format('woff2');unicode-range:U+0900-097F,U+200C-200D,U+25CC}
 @font-face{font-family:'Noto Sans Devanagari';font-weight:600;font-style:normal;font-display:swap;src:url(/fonts/noto-sans-devanagari-devanagari-600-normal.woff2) format('woff2');unicode-range:U+0900-097F,U+200C-200D,U+25CC}
+@font-face{font-family:'Noto Sans Gujarati';font-weight:400;font-style:normal;font-display:swap;src:url(/fonts/noto-sans-gujarati-gujarati-400-normal.woff2) format('woff2');unicode-range:U+0A80-0AFF,U+200C-200D,U+25CC}
+@font-face{font-family:'Noto Sans Gujarati';font-weight:600;font-style:normal;font-display:swap;src:url(/fonts/noto-sans-gujarati-gujarati-600-normal.woff2) format('woff2');unicode-range:U+0A80-0AFF,U+200C-200D,U+25CC}
+@font-face{font-family:'Noto Sans Tamil';font-weight:400;font-style:normal;font-display:swap;src:url(/fonts/noto-sans-tamil-tamil-400-normal.woff2) format('woff2');unicode-range:U+0B80-0BFF,U+200C-200D,U+25CC}
+@font-face{font-family:'Noto Sans Tamil';font-weight:600;font-style:normal;font-display:swap;src:url(/fonts/noto-sans-tamil-tamil-600-normal.woff2) format('woff2');unicode-range:U+0B80-0BFF,U+200C-200D,U+25CC}
 
 /* ---------- tokens ---------- */
 :root{
   --ink:#14181d; --mute:#58626d; --paper:#f4f5f2; --white:#fff; --line:#d8dbd4;
   --brand:#0a3d91; --brand-d:#072b69; --brand-ink:#fff; --plate:#ffc400;
   --bg2:#eceee9; --ok:#0f7a4d; --danger:#b42318; --warn:#9a5b00;
-  --display:'Barlow Condensed','Arial Narrow',system-ui,sans-serif;
-  --body:'Hanken Grotesk','Noto Sans Devanagari',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --display:'Barlow Condensed','Noto Sans Devanagari','Noto Sans Gujarati','Noto Sans Tamil','Arial Narrow',system-ui,sans-serif;
+  --body:'Hanken Grotesk','Noto Sans Devanagari','Noto Sans Gujarati','Noto Sans Tamil',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
 }
 *{box-sizing:border-box}
 html{color-scheme:light;scroll-behavior:smooth}
@@ -53,8 +57,10 @@ a{color:var(--brand)}
 .nav a:hover{border-bottom-color:var(--plate)}
 .hdr-actions{margin-left:auto;display:flex;gap:8px;align-items:center;white-space:nowrap}
 .hdr-actions .btn{white-space:nowrap}
-@media(max-width:520px){.hdr-actions .ghost{display:none}.site-header .bar{gap:12px;padding:10px 16px}.logo{font-size:1.25rem}}
+@media(max-width:520px){.hdr-actions .ghost{display:none}.hdr-actions .ghost.in{display:inline-flex}.hdr-actions .create{display:none}.site-header .bar{gap:10px;padding:10px 16px}.logo{font-size:1.2rem;gap:8px}.lang-sel{height:36px;max-width:104px;padding:0 20px 0 8px;font-size:.82rem}.hdr-actions .btn.sm{padding:0 12px}}
+@media(max-width:360px){.logo{font-size:1rem;gap:6px}.mark{width:24px;height:17px}.lang-sel{max-width:80px;padding:0 18px 0 6px}.hdr-actions{gap:6px}.hdr-actions .btn.sm{padding:0 9px;font-size:.8rem}.site-header .bar{gap:6px;padding:10px 12px}}
 @media(min-width:760px){.nav{display:flex}}
+@media(min-width:760px) and (max-width:1049px){html:not([data-lang="en"]) .nav{display:none}}
 .site-footer{background:var(--ink);color:#c9d0d6;margin-top:56px}
 .site-footer .inner{padding-top:36px;padding-bottom:36px;display:grid;gap:24px}
 @media(min-width:760px){.site-footer .inner{grid-template-columns:1.4fr 1fr 1fr}}
@@ -210,3 +216,12 @@ p.sub{color:var(--mute);margin:0 0 22px;max-width:60ch}
 
 /* ---------- motion ---------- */
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* other languages: Indic scripts need more line height, and no letter-spacing, to draw marks cleanly */
+html:not([lang="en"]) body{line-height:1.7}
+html:not([lang="en"]) h1,html:not([lang="en"]) h2,html:not([lang="en"]) h3{line-height:1.3;letter-spacing:0}
+html:not([lang="en"]) .btn{line-height:1.4}
+html:not([lang="en"]) .faq summary,html:not([lang="en"]) .feat dt{line-height:1.4}
+html:not([lang="en"]) .sticker h1{letter-spacing:0}
+.lang-sel{height:38px;max-width:120px;padding:0 28px 0 10px;border:2px solid var(--ink);border-radius:8px;background:var(--white);color:var(--ink);font:600 .88rem var(--body);cursor:pointer;margin:0;box-sizing:border-box}
+@media(max-width:760px),(pointer:coarse){.lang-sel{height:44px}}
