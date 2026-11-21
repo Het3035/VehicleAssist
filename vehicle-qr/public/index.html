@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#ffffff">
+<meta name="description" content="Put a QR sticker on your vehicle. Anyone can alert you about parking, lights or an emergency without seeing your phone number.">
+<link rel="manifest" href="/manifest.webmanifest">
+<title>VehicleAssist - Reach a vehicle owner without their number</title>
+<link rel="stylesheet" href="/style.css?v=3">
+</head><body>
+
+<main>
+<section class="hero">
+  <div class="inner">
+    <div>
+      <h1>Reach the owner.<br>Not their number.</h1>
+      <p class="lead">Someone parked in your way, or your lights are on? Type the number plate or scan the sticker. The owner gets an alert and can reply, and nobody shares a phone number.</p>
+      <div class="cta-row">
+        <a class="btn lg" href="/owner">Get a sticker for my vehicle</a>
+        <a class="btn lg ghost" href="#how">See how it works</a>
+      </div>
+    </div>
+
+    <form class="plate-form" id="pf" action="/contact" method="get">
+      <p>Need to reach a vehicle owner? Type the plate.</p>
+      <label class="sr" for="pn">Vehicle number</label>
+      <div class="plate-big"><span class="strip" aria-hidden="true">IND</span>
+        <input id="pn" name="n" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="MH12AB1234" required></div>
+      <button class="btn block lg yellow">Contact the owner</button>
+      <p class="meta">No account needed. Free to use.</p>
+    </form>
+  </div>
+</section>
+
+<section class="section">
+  <div class="inner">
+    <h2>Who are you here as?</h2>
+    <div class="paths">
+      <div class="path"><h3>Vehicle owner</h3><p>Register your vehicle, print a QR sticker, and get alerts on your phone when someone needs you.</p><a class="btn" href="/owner">Owner login</a></div>
+      <div class="path"><h3>Service provider</h3><p>Keep a list of your customers' vehicles and send service reminders and updates straight to the owner.</p><a class="btn ghost" href="/provider">Provider login</a></div>
+      <div class="path"><h3>Someone with a problem</h3><p>Blocked in, lights left on, window open. Tell the owner in a few taps. No sign-up.</p><a class="btn ghost" href="/contact">Contact an owner</a></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="how">
+  <div class="inner">
+    <h2>From sticker to reply in a minute</h2>
+    <div class="how">
+      <ol class="steps">
+        <li><span class="n">1</span><div><h3>Stick it on your windscreen</h3><p>Register your vehicle and print the sticker. Each sticker has its own QR code tied to your plate.</p></div></li>
+        <li><span class="n">2</span><div><h3>Someone scans it</h3><p>They choose what is wrong: blocking, lights on, window open, towing, damage or emergency. They can add a message and, if they want, their location.</p></div></li>
+        <li><span class="n">3</span><div><h3>You get an alert and reply</h3><p>A notification arrives on your phone. Reply from your dashboard. They see your answer on the same page, and neither of you sees the other's number.</p></div></li>
+      </ol>
+      <div class="demo" aria-label="Example conversation">
+        <p class="meta">What the person who scanned sees</p>
+        <div class="chat">
+          <div class="bub bot">Found it: ••••••1234. The owner will be alerted instantly. Their phone number is never shown.</div>
+          <div class="bub me">Your vehicle is parked in a wrong or blocking spot</div>
+          <div class="bub me">Blocking gate B, please move</div>
+          <div class="bub bot"><small>Owner</small>On my way, two minutes.</div>
+          <div class="bub me">Thank you!</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="features">
+  <div class="inner">
+    <h2>Made for everyday road problems</h2>
+    <dl class="feat">
+      <div><dt>Your number stays private</dt><dd>The contact page shows only the last four characters of your plate. Your phone number appears only if you choose to show a call button.</dd></div>
+      <div><dt>Two-way chat</dt><dd>Reply to whoever scanned your sticker. The conversation stays on the page they scanned from.</dd></div>
+      <div><dt>Insurance, PUC and service reminders</dt><dd>Enter the dates once. You get an alert 30 days, 7 days and 1 day before, and on the day.</dd></div>
+      <div><dt>Hindi and English</dt><dd>Anyone can switch the contact page to Hindi with one tap.</dd></div>
+      <div><dt>Share location</dt><dd>When someone wants to, they attach where they are, so you can find them quickly. It is always optional.</dd></div>
+      <div><dt>Works like an app</dt><dd>Add it to your phone's home screen and turn on notifications. No app store needed.</dd></div>
+    </dl>
+  </div>
+</section>
+
+<section class="band">
+  <div class="inner">
+    <div><h2>Garages, dealers and fleets</h2>
+      <p>Add your customers' vehicle numbers and send a service reminder in two taps. If the owner has registered the vehicle, the message reaches their phone.</p></div>
+    <div><a class="btn lg yellow" href="/provider">Set up a service provider account</a></div>
+  </div>
+</section>
+
+<section class="section" id="faq">
+  <div class="inner">
+    <h2>Questions people ask</h2>
+    <div class="faq">
+      <details><summary>Can the person who scans see my phone number?</summary><p>No. They see the last four characters of your plate and any note you leave. Your number is shown only if you turn on the call button for that vehicle.</p></details>
+      <details><summary>Does the person scanning need an account?</summary><p>No. They scan or type the plate, pick a reason and send. They only share a phone number if they choose to type one.</p></details>
+      <details><summary>What if someone spams my sticker?</summary><p>Each sticker accepts a few alerts every ten minutes. You can dismiss any message, and you can delete a vehicle to stop its sticker working.</p></details>
+      <details><summary>How do I get alerts on my phone?</summary><p>Open your dashboard, choose Enable phone notifications, and allow them in your browser. Alerts also always appear in your dashboard.</p></details>
+      <details><summary>Does it cost anything?</summary><p>No. It is free to use, with no ads and no tracking.</p></details>
+    </div>
+  </div>
+</section>
+</main>
+
+<script src="/site.js?v=3"></script>
+<script>
+// The plate types a sample number into itself once, then stops.
+(() => {
+  const inp = document.getElementById('pn');
+  const sample = 'MH12AB1234';
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  let i = 0, stop = false;
+  inp.addEventListener('focus', () => { stop = true; inp.placeholder = sample; });
+  const tick = () => {
+    if (stop || i > sample.length) return;
+    inp.placeholder = sample.slice(0, i++) || ' ';
+    setTimeout(tick, 110);
+  };
+  setTimeout(tick, 500);
+})();
+</script>
+</body></html>

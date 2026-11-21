@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#ffffff">
+<title>Log in - Vehicle Assistant</title><link rel="manifest" href="/manifest.webmanifest"><link rel="stylesheet" href="/style.css?v=3">
+</head><body><div class="wrap">
+<h1 id="title"></h1>
+<p class="sub" id="sub"></p>
+<div class="card">
+  <div class="tabs">
+    <button class="btn sm" id="tLogin" type="button">Log in</button>
+    <button class="btn sm ghost" id="tReg" type="button">Create account</button>
+  </div>
+  <form id="f">
+    <div id="nameBox" class="hide"><label for="name" id="nameLbl">Your name</label><input id="name" type="text" autocomplete="name"></div>
+    <label for="phone">Phone number</label><input id="phone" type="tel" autocomplete="tel" required>
+    <label for="pw">Password</label><input id="pw" type="password" minlength="6" required>
+    <button class="btn block" id="go" style="margin-top:16px">Log in</button>
+    <div id="out"></div>
+  </form>
+</div>
+<p class="meta">Your phone number stays private. It is never shown to people who contact you.</p>
+<script>
+const role=location.pathname.startsWith('/provider')?'provider':'owner';
+const $=id=>document.getElementById(id);
+$('title').textContent=role==='provider'?'Service provider':'Vehicle owner';
+$('sub').textContent=role==='provider'?'Manage customers and send service reminders and updates.':'Keep your vehicle connected. People can reach you without seeing your phone number.';
+$('nameLbl').textContent=role==='provider'?'Business name':'Your name';
+fetch('/api/me').then(r=>r.ok?r.json():null).then(u=>{if(u)location.href=u.next});
+let mode='login';
+function setMode(m){mode=m;
+  $('nameBox').classList.toggle('hide',m==='login');
+  $('go').textContent=m==='login'?'Log in':'Create account';
+  $('tLogin').classList.toggle('ghost',m!=='login');$('tReg').classList.toggle('ghost',m==='login');
+  $('pw').autocomplete=m==='login'?'current-password':'new-password';$('out').innerHTML='';}
+$('tLogin').onclick=()=>setMode('login');$('tReg').onclick=()=>setMode('register');
+$('f').onsubmit=async e=>{e.preventDefault();$('go').disabled=true;
+  const r=await fetch('/api/'+mode,{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({name:$('name').value,phone:$('phone').value,password:$('pw').value,role})});
+  const j=await r.json().catch(()=>({}));
+  if(r.ok)location.href=j.next;
+  else{$('out').innerHTML='<div class="msg err"></div>';$('out').firstChild.textContent=j.error||'Something went wrong';$('go').disabled=false;}};
+</script></div><script src="/site.js?v=3"></script></body></html>
