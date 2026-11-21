@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Admin - VehicleAssist</title><link rel="stylesheet" href="/style.css?v=4">
+<style>
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:18px}
+.stat{background:var(--white);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.stat b{display:block;font:700 1.7rem/1 var(--display)}.stat span{color:var(--mute);font-size:.82rem}
+.report{border-top:1px solid var(--line);padding:12px 0}.report:first-child{border-top:0}
+.report.done{opacity:.55}
+.admin-in{width:100%;padding:11px 13px;border:1.5px solid #b9beb6;border-radius:8px;font:inherit}
+code{background:var(--bg2);padding:2px 6px;border-radius:5px}
+</style></head><body><div class="wrap wide">
+<div class="row between" style="margin-bottom:16px"><h1 style="margin:0">Admin</h1><button class="btn ghost sm hide" id="out">Log out</button></div>
+
+<div class="card" id="loginCard" style="max-width:420px;margin-top:20px">
+  <form id="lf"><label for="apw">Admin password</label>
+  <input class="admin-in" id="apw" type="password" autocomplete="current-password" required>
+  <button class="btn block" style="margin-top:14px">Log in</button><div id="lout"></div></form>
+</div>
+
+<div id="main" class="hide">
+  <div class="stats" id="stats"></div>
+  <div class="cols">
+    <section>
+      <div class="card"><h2>Reports</h2><div id="reports"></div></div>
+      <div class="card"><h2>Banned senders</h2><div id="bans"></div></div>
+    </section>
+    <section>
+      <div class="card"><h2>Accounts</h2>
+        <input class="admin-in" id="q" type="search" placeholder="Search name, phone or email" aria-label="Search accounts">
+        <div id="users" style="margin-top:8px"></div></div>
+      <div class="card"><h2>Backups</h2><div id="backups"></div>
+        <button class="btn sm" id="bk" style="margin-top:10px">Back up now</button><div id="bkout"></div></div>
+    </section>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const el=(t,p={},...k)=>{const e=Object.assign(document.createElement(t),p);k.flat().forEach(x=>e.append(x));return e;};
+const A=async(u,body)=>{const r=await fetch(u,{method:body===undefined?'GET':'POST',headers:{'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body)});
+  const j=await r.json().catch(()=>({}));if(r.status===401){showLogin();throw new Error('login');}if(!r.ok)throw new Error(j.error||'Error');return j;};
+const when=t=>new Date(t).toLocaleString([],{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+const say=(box,cls,t)=>box.replaceChildren(el('div',{className:'msg '+cls,textContent:t}));
+
+function showLogin(){$('loginCard').classList.remove('hide');$('main').classList.add('hide');$('out').classList.add('hide');}
+async function showMain(){$('loginCard').classList.add('hide');$('main').classList.remove('hide');$('out').classList.remove('hide');await Promise.all([overview(),reports(),bans(),users()]);}
+
+$('lf').onsubmit=async e=>{e.preventDefault();
+  try{await A('/api/admin/login',{password:$('apw').value});$('apw').value='';showMain();}catch(err){if(err.message!=='login')say($('lout'),'err',err.message);}};
+$('out').onclick=async()=>{await A('/api/admin/logout',{}).catch(()=>{});showLogin();};
+
+async function overview(){
+  const o=await A('/api/admin/overview');
+  $('stats').replaceChildren(...[['Owners',o.owners],['Providers',o.providers],['Vehicles',o.vehicles],['Alerts, 24h',o.alerts24h],['Open reports',o.openReports],['Banned senders',o.bannedDevices]]
+    .map(([l,n])=>el('div',{className:'stat'},el('b',{textContent:n}),el('span',{textContent:l}))));
+  const b=$('backups');b.replaceChildren(el('p',{className:'meta',style:'margin-top:0'},'Folder: ',el('code',{textContent:o.backupDir})));
+  if(!o.backups.length)b.append(el('p',{className:'meta',textContent:'No backups yet.'}));
+  o.backups.forEach(x=>b.append(el('div',{className:'row between'},el('span',{textContent:x.file}),el('span',{className:'meta',textContent:Math.round(x.size/1024)+' KB, '+when(x.modified)}))));
+  b.append(el('p',{className:'meta',textContent:'Alerts older than '+(o.retentionDays||'(never)')+' days are deleted. A sender is banned everywhere after reports from '+o.autoBanAfter+' owners.'}));
+}
+$('bk').onclick=async()=>{$('bk').disabled=true;try{const r=await A('/api/admin/backup',{});say($('bkout'),'ok','Saved '+r.file);overview();}catch(e){say($('bkout'),'err',e.message);}$('bk').disabled=false;};
+
+async function reports(){
+  const list=await A('/api/admin/reports');const box=$('reports');box.replaceChildren();
+  if(!list.length)return box.append(el('p',{className:'meta',textContent:'No reports. Nothing to do.'}));
+  list.forEach(r=>{
+    const open=r.status==='open';
+    const who=r.target_user_id?('Service provider: '+(r.target_name||'(deleted)')):('Anonymous scanner'+(r.reporters>1?' (reported by '+r.reporters+' owners)':''));
+    const act=el('div',{className:'row',style:'margin-top:8px'});
+    if(open){
+      if(r.hasDevice&&!r.banned){const b=el('button',{className:'btn danger sm',textContent:'Ban sender everywhere'});b.onclick=async()=>{await A('/api/admin/reports/'+r.id+'/ban',{});refresh();};act.append(b);}
+      if(r.target_user_id&&r.target_name){const b=el('button',{className:'btn danger sm',textContent:'Delete provider account'});b.onclick=async()=>{if(confirm('Delete '+r.target_name+' and all their data?')){await A('/api/admin/users/'+r.target_user_id+'/delete',{});refresh();}};act.append(b);}
+      const d=el('button',{className:'btn ghost sm',textContent:'Dismiss'});d.onclick=async()=>{await A('/api/admin/reports/'+r.id+'/dismiss',{});refresh();};act.append(d);
+    }
+    box.append(el('div',{className:'report'+(open?'':' done')},
+      el('div',{},el('strong',{textContent:r.reason}),' ',el('span',{className:'pill'+(r.banned?' on':''),textContent:r.banned?'Banned':open?'Open':r.status})),
+      el('div',{textContent:who}),
+      r.text?el('div',{textContent:'"'+r.text+'"'}):'',
+      el('div',{className:'meta',textContent:'Reported by '+(r.reporter_name||'(deleted)')+' '+(r.reporter_phone||'')+', '+when(r.created)}),act));
+  });
+}
+async function bans(){
+  const list=await A('/api/admin/bans');const box=$('bans');box.replaceChildren();
+  if(!list.length)return box.append(el('p',{className:'meta',textContent:'None.'}));
+  list.forEach(b=>{const x=el('button',{className:'btn ghost sm',textContent:'Unban'});x.onclick=async()=>{await A('/api/admin/bans/remove',{dev_hash:b.dev_hash});refresh();};
+    box.append(el('div',{className:'row between',style:'padding:6px 0'},el('div',{},el('code',{textContent:b.dev_hash.slice(0,8)}),el('div',{className:'meta',textContent:b.reason+', '+when(b.created)})),x));});
+}
+let timer;
+async function users(){
+  const list=await A('/api/admin/users?q='+encodeURIComponent($('q').value));const box=$('users');box.replaceChildren();
+  if(!list.length)return box.append(el('p',{className:'meta',textContent:'No accounts found.'}));
+  list.forEach(u=>{
+    const pw=el('button',{className:'btn ghost sm',textContent:'Temporary password'});const out=el('div');
+    pw.onclick=async()=>{if(!confirm('Set a new temporary password for '+u.name+'? They will be logged out everywhere.'))return;
+      const r=await A('/api/admin/users/'+u.id+'/password',{});say(out,'ok','Temporary password: '+r.password+'  (tell them to change it; shown once)');};
+    const del=el('button',{className:'btn danger sm',textContent:'Delete'});
+    del.onclick=async()=>{if(confirm('Delete '+u.name+' and all their data? This cannot be undone.')){await A('/api/admin/users/'+u.id+'/delete',{});refresh();}};
+    box.append(el('div',{className:'report'},
+      el('div',{className:'row between'},el('strong',{textContent:u.name}),el('span',{className:'pill',textContent:u.role})),
+      el('div',{className:'meta',textContent:u.phone+(u.email?' | '+u.email+(u.emailVerified?' (verified)':''):'')+' | '+u.vehicles+' vehicle(s) | joined '+new Date(u.created).toLocaleDateString()}),
+      el('div',{className:'row',style:'margin-top:8px'},pw,del),out));
+  });
+}
+$('q').oninput=()=>{clearTimeout(timer);timer=setTimeout(()=>users().catch(()=>{}),250);};
+const refresh=()=>Promise.all([overview(),reports(),bans(),users()]).catch(()=>{});
+A('/api/admin/overview').then(showMain).catch(()=>showLogin());
+</script></div></body></html>

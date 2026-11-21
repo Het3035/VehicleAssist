@@ -2,55 +2,60 @@
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#ffffff">
-<title>Service provider - Vehicle Assistant</title><link rel="manifest" href="/manifest.webmanifest"><link rel="stylesheet" href="/style.css?v=3">
+<title>Service provider - VehicleAssist</title><meta data-doctitle="pv.title"><link rel="manifest" href="/manifest.webmanifest"><link rel="stylesheet" href="/style.css?v=4">
 </head><body><div class="wrap wide">
 <h1 id="hello">Service provider</h1>
-<p class="sub">Add your customers' vehicles and send service reminders or updates. Owners get an instant alert and never see your customer list.</p>
+<p class="sub" data-i="pv.sub">Add your customers' vehicles and send service reminders or updates. Owners get an instant alert and never see your customer list.</p>
 
 <div class="cols"><section>
 <div class="card">
-  <h2>Add a customer</h2>
+  <h2 data-i="pv.add">Add a customer</h2>
   <form id="addF">
-    <label for="cname">Customer name</label><input id="cname" type="text" required>
-    <label for="cnum">Vehicle number</label><input id="cnum" type="text" placeholder="MH12AB1234" required>
-    <label for="cnote">Note (optional)</label><input id="cnote" type="text" placeholder="e.g. Next service due Dec 15">
-    <button class="btn block" style="margin-top:14px">Add customer</button>
+    <label for="cname" data-i="pv.cname">Customer name</label><input id="cname" type="text" required>
+    <label for="cnum" data-i="pv.cnum">Vehicle number</label><input id="cnum" type="text" placeholder="MH12AB1234" required>
+    <label for="cnote" data-i="pv.cnote">Note (optional)</label><input id="cnote" type="text" placeholder="e.g. Next service due Dec 15" data-ph="pv.cnoteph">
+    <button class="btn block" style="margin-top:14px" data-i="pv.addbtn">Add customer</button>
     <div id="addOut"></div>
   </form>
 </div>
 
+<div class="card" id="accountCard"></div>
+
 </section><section>
-<h2>Customers</h2>
+<h2 data-i="pv.h">Customers</h2>
 <div id="list"></div>
 </section></div>
 
+<script src="/i18n.js?v=5"></script>
 <script>
+const T=(k,v)=>I18N.t(k,v),E=m=>I18N.tErr(m);
 const $=id=>document.getElementById(id);
 const J=(u,o={})=>fetch(u,{...o,headers:{'Content-Type':'application/json'},body:o.body&&JSON.stringify(o.body)}).then(async r=>{
   if(r.status===401||r.status===403){location.href='/provider';throw new Error('login')}
   const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||'Error');return j;});
 const el=(t,p={},...k)=>{const e=Object.assign(document.createElement(t),p);k.flat().forEach(x=>e.append(x));return e;};
 J('/api/me').then(u=>$('hello').textContent=u.name);
+window.addEventListener('langchange',()=>load().catch(()=>{}));
 
 async function load(){
   const list=await J('/api/provider/customers');const box=$('list');box.replaceChildren();
-  if(!list.length)box.append(el('p',{className:'meta',textContent:'No customers yet. Add one above.'}));
+  if(!list.length)box.append(el('p',{className:'meta',textContent:T('pv.none')}));
   list.forEach(c=>{
-    const txt=el('input',{type:'text',placeholder:'Message, e.g. Your service is due',maxLength:300,ariaLabel:'Message to '+c.name,style:'flex:1 1 180px'});
+    const txt=el('input',{type:'text',placeholder:T('pv.msgph'),maxLength:300,ariaLabel:T('pv.msgto',{n:c.name}),style:'flex:1 1 180px'});
     const out=el('div');
-    const send=el('button',{className:'btn sm',textContent:'Send',disabled:!c.onApp});
+    const send=el('button',{className:'btn sm',textContent:T('pv.send'),disabled:!c.onApp});
     send.onclick=async()=>{
       send.disabled=true;
-      try{await J('/api/provider/customers/'+c.id+'/notify',{method:'POST',body:{text:txt.value}});txt.value='';out.replaceChildren(el('div',{className:'msg ok',textContent:'Sent to the owner.'}));}
-      catch(e){out.replaceChildren(el('div',{className:'msg err',textContent:e.message}));}
+      try{await J('/api/provider/customers/'+c.id+'/notify',{method:'POST',body:{text:txt.value}});txt.value='';out.replaceChildren(el('div',{className:'msg ok',textContent:T('pv.sent')}));}
+      catch(e){out.replaceChildren(el('div',{className:'msg err',textContent:E(e.message)}));}
       send.disabled=false;
     };
-    const del=el('button',{className:'btn danger sm',textContent:'Remove'});
-    del.onclick=async()=>{if(confirm('Remove '+c.name+'?')){await J('/api/provider/customers/'+c.id,{method:'DELETE'});load();}};
+    const del=el('button',{className:'btn danger sm',textContent:T('pv.remove')});
+    del.onclick=async()=>{if(confirm(T('pv.confirm',{n:c.name}))){await J('/api/provider/customers/'+c.id,{method:'DELETE'});load();}};
     box.append(el('div',{className:'card'},
       el('div',{className:'row between'},
         el('div',{},el('strong',{textContent:c.name}),el('div',{className:'plate',style:'font-size:1.05rem',textContent:c.number})),
-        el('span',{className:'pill'+(c.onApp?' on':''),textContent:c.onApp?'Owner on app':'Not on app yet'})),
+        el('span',{className:'pill'+(c.onApp?' on':''),textContent:T(c.onApp?'pv.onapp':'pv.notonapp')})),
       c.note?el('div',{className:'meta',style:'margin-top:4px',textContent:c.note}):'',
       el('div',{className:'row',style:'margin-top:10px'},txt,send),
       out,el('div',{style:'margin-top:8px'},del)));
@@ -59,6 +64,6 @@ async function load(){
 $('addF').onsubmit=async e=>{e.preventDefault();
   try{await J('/api/provider/customers',{method:'POST',body:{name:$('cname').value,number:$('cnum').value,note:$('cnote').value}});
     $('addF').reset();$('addOut').replaceChildren();load();}
-  catch(err){$('addOut').replaceChildren(el('div',{className:'msg err',textContent:err.message}));}};
+  catch(err){$('addOut').replaceChildren(el('div',{className:'msg err',textContent:E(err.message)}));}};
 load();
-</script></div><script src="/site.js?v=3"></script></body></html>
+</script></div><script src="/site.js?v=5"></script><script src="/account.js?v=5"></script></body></html>

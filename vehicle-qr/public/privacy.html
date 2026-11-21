@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#ffffff">
+<title>Privacy - VehicleAssist</title><meta data-doctitle="pr.title"><link rel="manifest" href="/manifest.webmanifest"><link rel="stylesheet" href="/style.css?v=4">
+<style>
+.prose{max-width:68ch}.prose h2{margin:30px 0 8px;font-size:1.35rem}.prose p,.prose li{line-height:1.6}.prose ul{padding-left:1.2rem;margin:8px 0}
+.prose table{border-collapse:collapse;width:100%;font-size:.92rem;margin:10px 0}.prose th,.prose td{border-top:1px solid var(--line);padding:8px 10px 8px 0;text-align:left;vertical-align:top}
+.tbl{overflow-x:auto}
+</style>
+<!-- TEMPLATE: written to match what this app actually does. Whoever runs the site is responsible for it being accurate and for
+     any legal review (India's DPDP Act, 2023 may apply once real people use it). Edit freely. -->
+</head><body><div class="wrap prose">
+<h1 data-i="pr.h1">Privacy</h1>
+<p class="sub" data-i="pr.sub"></p>
+
+<h2 data-i="pr.keep"></h2>
+<div class="tbl"><table>
+<tr><th data-i="pr.who"></th><th data-i="pr.what"></th><th data-i="pr.why"></th></tr>
+<tr><td data-i="pr.r1a"></td><td data-i="pr.r1b"></td><td data-i="pr.r1c"></td></tr>
+<tr><td data-i="pr.r2a"></td><td data-i="pr.r2b"></td><td data-i="pr.r2c"></td></tr>
+<tr><td data-i="pr.r3a"></td><td data-i="pr.r3b"></td><td data-i="pr.r3c"></td></tr>
+</table></div>
+<p data-i="pr.noads"></p>
+<p data-i="pr.photo"></p>
+
+<h2 data-i="pr.see"></h2>
+<ul>
+<li data-i="pr.s1"></li>
+<li data-i="pr.s2"></li>
+<li data-i="pr.s3"></li>
+<li data-i="pr.s4"></li>
+<li data-i="pr.s5"></li>
+</ul>
+
+<h2 data-i="pr.out"></h2>
+<ul>
+<li data-i="pr.o1"></li>
+<li data-i="pr.o2"></li>
+<li data-i="pr.o3"></li>
+</ul>
+
+<h2 data-i="pr.how"></h2>
+<p id="retention"></p>
+
+<h2 data-i="pr.choice"></h2>
+<ul>
+<li data-i="pr.c1"></li>
+<li data-i="pr.c2"></li>
+<li data-i="pr.c3"></li>
+<li data-i="pr.c4"></li>
+<li data-i="pr.c5"></li>
+<li data-i="pr.c6"></li>
+</ul>
+
+<h2 data-i="pr.cookies"></h2>
+<p data-i="pr.cookp"></p>
+
+<h2 data-i="pr.sec"></h2>
+<p data-i="pr.secp"></p>
+
+<h2 data-i="pr.kids"></h2>
+<p data-i="pr.kidsp"></p>
+
+<h2 data-i="pr.contact"></h2>
+<p id="contact"></p>
+<p class="meta" data-i="pr.updated"></p>
+<script src="/i18n.js?v=5"></script>
+<script>
+let site={};
+function render(){
+  const T=I18N.t;
+  document.getElementById('retention').textContent=site.retentionDays>0?T('pr.ret',{d:site.retentionDays}):T('pr.ret0');
+  const c=document.getElementById('contact');
+  if(site.contactEmail){const parts=T('pr.cont1',{e:'\u0000'}).split('\u0000');c.textContent=parts[0];const a=document.createElement('a');a.href='mailto:'+site.contactEmail;a.textContent=site.contactEmail;c.append(a,parts[1]||'');}
+  else c.textContent=T('pr.cont0');
+}
+window.addEventListener('langchange',render);
+fetch('/api/site').then(r=>r.json()).then(s=>{site=s;render();}).catch(render);
+</script>
+</div><script src="/site.js?v=5"></script></body></html>

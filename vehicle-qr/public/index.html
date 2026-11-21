@@ -2,63 +2,63 @@
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#ffffff">
-<meta name="description" content="Put a QR sticker on your vehicle. Anyone can alert you about parking, lights or an emergency without seeing your phone number.">
+<meta name="description" data-desc="idx.desc" content="Put a QR sticker on your vehicle. Anyone can alert you about parking, lights or an emergency without seeing your phone number.">
 <link rel="manifest" href="/manifest.webmanifest">
-<title>VehicleAssist - Reach a vehicle owner without their number</title>
-<link rel="stylesheet" href="/style.css?v=3">
+<title>VehicleAssist - Reach a vehicle owner without their number</title><meta data-doctitle="idx.title">
+<link rel="stylesheet" href="/style.css?v=4">
 </head><body>
 
 <main>
 <section class="hero">
   <div class="inner">
     <div>
-      <h1>Reach the owner.<br>Not their number.</h1>
-      <p class="lead">Someone parked in your way, or your lights are on? Type the number plate or scan the sticker. The owner gets an alert and can reply, and nobody shares a phone number.</p>
+      <h1 data-ih="idx.h1">Reach the owner.<br>Not their number.</h1>
+      <p class="lead" data-i="idx.lead">Someone parked in your way, or your lights are on? Type the number plate or scan the sticker. The owner gets an alert and can reply, and nobody shares a phone number.</p>
       <div class="cta-row">
-        <a class="btn lg" href="/owner">Get a sticker for my vehicle</a>
-        <a class="btn lg ghost" href="#how">See how it works</a>
+        <a class="btn lg" href="/owner" data-i="idx.cta1">Get a sticker for my vehicle</a>
+        <a class="btn lg ghost" href="#how" data-i="idx.cta2">See how it works</a>
       </div>
     </div>
 
     <form class="plate-form" id="pf" action="/contact" method="get">
-      <p>Need to reach a vehicle owner? Type the plate.</p>
-      <label class="sr" for="pn">Vehicle number</label>
+      <p data-i="idx.platep">Need to reach a vehicle owner? Type the plate.</p>
+      <label class="sr" for="pn" data-i="idx.pl">Vehicle number</label>
       <div class="plate-big"><span class="strip" aria-hidden="true">IND</span>
         <input id="pn" name="n" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="MH12AB1234" required></div>
-      <button class="btn block lg yellow">Contact the owner</button>
-      <p class="meta">No account needed. Free to use.</p>
+      <button class="btn block lg yellow" data-i="idx.platebtn">Contact the owner</button>
+      <p class="meta" data-i="idx.platemeta">No account needed. Free to use.</p>
     </form>
   </div>
 </section>
 
 <section class="section">
   <div class="inner">
-    <h2>Who are you here as?</h2>
+    <h2 data-i="idx.who">Who are you here as?</h2>
     <div class="paths">
-      <div class="path"><h3>Vehicle owner</h3><p>Register your vehicle, print a QR sticker, and get alerts on your phone when someone needs you.</p><a class="btn" href="/owner">Owner login</a></div>
-      <div class="path"><h3>Service provider</h3><p>Keep a list of your customers' vehicles and send service reminders and updates straight to the owner.</p><a class="btn ghost" href="/provider">Provider login</a></div>
-      <div class="path"><h3>Someone with a problem</h3><p>Blocked in, lights left on, window open. Tell the owner in a few taps. No sign-up.</p><a class="btn ghost" href="/contact">Contact an owner</a></div>
+      <div class="path"><h3 data-i="idx.p1h">Vehicle owner</h3><p data-i="idx.p1p">Register your vehicle, print a QR sticker, and get alerts on your phone when someone needs you.</p><a class="btn" href="/owner" data-i="idx.p1b">Owner login</a></div>
+      <div class="path"><h3 data-i="idx.p2h">Service provider</h3><p data-i="idx.p2p">Keep a list of your customers' vehicles and send service reminders and updates straight to the owner.</p><a class="btn ghost" href="/provider" data-i="idx.p2b">Provider login</a></div>
+      <div class="path"><h3 data-i="idx.p3h">Someone with a problem</h3><p data-i="idx.p3p">Blocked in, lights left on, window open. Tell the owner in a few taps. No sign-up.</p><a class="btn ghost" href="/contact" data-i="idx.p3b">Contact an owner</a></div>
     </div>
   </div>
 </section>
 
 <section class="section" id="how">
   <div class="inner">
-    <h2>From sticker to reply in a minute</h2>
+    <h2 data-i="idx.how">From sticker to reply in a minute</h2>
     <div class="how">
       <ol class="steps">
-        <li><span class="n">1</span><div><h3>Stick it on your windscreen</h3><p>Register your vehicle and print the sticker. Each sticker has its own QR code tied to your plate.</p></div></li>
-        <li><span class="n">2</span><div><h3>Someone scans it</h3><p>They choose what is wrong: blocking, lights on, window open, towing, damage or emergency. They can add a message and, if they want, their location.</p></div></li>
-        <li><span class="n">3</span><div><h3>You get an alert and reply</h3><p>A notification arrives on your phone. Reply from your dashboard. They see your answer on the same page, and neither of you sees the other's number.</p></div></li>
+        <li><span class="n">1</span><div><h3 data-i="idx.s1h">Stick it on your windscreen</h3><p data-i="idx.s1p">Register your vehicle and print the sticker. Each sticker has its own QR code tied to your plate.</p></div></li>
+        <li><span class="n">2</span><div><h3 data-i="idx.s2h">Someone scans it</h3><p data-i="idx.s2p">They choose what is wrong: blocking, lights on, window open, towing, damage or emergency. They can add a message and, if they want, their location.</p></div></li>
+        <li><span class="n">3</span><div><h3 data-i="idx.s3h">You get an alert and reply</h3><p data-i="idx.s3p">A notification arrives on your phone. Reply from your dashboard. They see your answer on the same page, and neither of you sees the other's number.</p></div></li>
       </ol>
-      <div class="demo" aria-label="Example conversation">
-        <p class="meta">What the person who scanned sees</p>
+      <div class="demo" aria-label="Example conversation" data-al="idx.demoal">
+        <p class="meta" data-i="idx.demo">What the person who scanned sees</p>
         <div class="chat">
-          <div class="bub bot">Found it: ••••••1234. The owner will be alerted instantly. Their phone number is never shown.</div>
-          <div class="bub me">Your vehicle is parked in a wrong or blocking spot</div>
-          <div class="bub me">Blocking gate B, please move</div>
-          <div class="bub bot"><small>Owner</small>On my way, two minutes.</div>
-          <div class="bub me">Thank you!</div>
+          <div class="bub bot" data-i="idx.b1">Found it: ••••••1234. The owner will be alerted instantly. Their phone number is never shown.</div>
+          <div class="bub me" data-i="kind.wrong_parking">Your vehicle is parked in a wrong or blocking spot</div>
+          <div class="bub me" data-i="idx.b3">Blocking gate B, please move</div>
+          <div class="bub bot"><small data-i="common.owner">Owner</small><span data-i="idx.b4">On my way, two minutes.</span></div>
+          <div class="bub me" data-i="idx.b5">Thank you!</div>
         </div>
       </div>
     </div>
@@ -67,41 +67,41 @@
 
 <section class="section" id="features">
   <div class="inner">
-    <h2>Made for everyday road problems</h2>
+    <h2 data-i="idx.feat">Made for everyday road problems</h2>
     <dl class="feat">
-      <div><dt>Your number stays private</dt><dd>The contact page shows only the last four characters of your plate. Your phone number appears only if you choose to show a call button.</dd></div>
-      <div><dt>Two-way chat</dt><dd>Reply to whoever scanned your sticker. The conversation stays on the page they scanned from.</dd></div>
-      <div><dt>Insurance, PUC and service reminders</dt><dd>Enter the dates once. You get an alert 30 days, 7 days and 1 day before, and on the day.</dd></div>
-      <div><dt>Hindi and English</dt><dd>Anyone can switch the contact page to Hindi with one tap.</dd></div>
-      <div><dt>Share location</dt><dd>When someone wants to, they attach where they are, so you can find them quickly. It is always optional.</dd></div>
-      <div><dt>Works like an app</dt><dd>Add it to your phone's home screen and turn on notifications. No app store needed.</dd></div>
+      <div><dt data-i="idx.f1h">Your number stays private</dt><dd data-i="idx.f1p">The contact page shows only the last four characters of your plate. Your phone number appears only if you choose to show a call button.</dd></div>
+      <div><dt data-i="idx.f2h">Two-way chat</dt><dd data-i="idx.f2p">Reply to whoever scanned your sticker. The conversation stays on the page they scanned from.</dd></div>
+      <div><dt data-i="idx.f3h">Insurance, PUC and service reminders</dt><dd data-i="idx.f3p">Enter the dates once. You get an alert 30 days, 7 days and 1 day before, and on the day.</dd></div>
+      <div><dt data-i="idx.f4h">Hindi and English</dt><dd data-i="idx.f4p">Anyone can switch the contact page to Hindi with one tap.</dd></div>
+      <div><dt data-i="idx.f5h">Share location</dt><dd data-i="idx.f5p">When someone wants to, they attach where they are, so you can find them quickly. It is always optional.</dd></div>
+      <div><dt data-i="idx.f6h">Works like an app</dt><dd data-i="idx.f6p">Add it to your phone's home screen and turn on notifications. No app store needed.</dd></div>
     </dl>
   </div>
 </section>
 
 <section class="band">
   <div class="inner">
-    <div><h2>Garages, dealers and fleets</h2>
-      <p>Add your customers' vehicle numbers and send a service reminder in two taps. If the owner has registered the vehicle, the message reaches their phone.</p></div>
-    <div><a class="btn lg yellow" href="/provider">Set up a service provider account</a></div>
+    <div><h2 data-i="idx.band">Garages, dealers and fleets</h2>
+      <p data-i="idx.bandp">Add your customers' vehicle numbers and send a service reminder in two taps. If the owner has registered the vehicle, the message reaches their phone.</p></div>
+    <div><a class="btn lg yellow" href="/provider" data-i="idx.bandb">Set up a service provider account</a></div>
   </div>
 </section>
 
 <section class="section" id="faq">
   <div class="inner">
-    <h2>Questions people ask</h2>
+    <h2 data-i="idx.faq">Questions people ask</h2>
     <div class="faq">
-      <details><summary>Can the person who scans see my phone number?</summary><p>No. They see the last four characters of your plate and any note you leave. Your number is shown only if you turn on the call button for that vehicle.</p></details>
-      <details><summary>Does the person scanning need an account?</summary><p>No. They scan or type the plate, pick a reason and send. They only share a phone number if they choose to type one.</p></details>
-      <details><summary>What if someone spams my sticker?</summary><p>Each sticker accepts a few alerts every ten minutes. You can dismiss any message, and you can delete a vehicle to stop its sticker working.</p></details>
-      <details><summary>How do I get alerts on my phone?</summary><p>Open your dashboard, choose Enable phone notifications, and allow them in your browser. Alerts also always appear in your dashboard.</p></details>
-      <details><summary>Does it cost anything?</summary><p>No. It is free to use, with no ads and no tracking.</p></details>
+      <details><summary data-i="idx.q1">Can the person who scans see my phone number?</summary><p data-i="idx.a1">No. They see the last four characters of your plate and any note you leave. Your number is shown only if you turn on the call button for that vehicle.</p></details>
+      <details><summary data-i="idx.q2">Does the person scanning need an account?</summary><p data-i="idx.a2">No. They scan or type the plate, pick a reason and send. They only share a phone number if they choose to type one.</p></details>
+      <details><summary data-i="idx.q3">What if someone spams my sticker?</summary><p data-i="idx.a3">Each sticker accepts a few alerts every ten minutes. You can dismiss any message, and you can delete a vehicle to stop its sticker working.</p></details>
+      <details><summary data-i="idx.q4">How do I get alerts on my phone?</summary><p data-i="idx.a4">Open your dashboard, choose Enable phone notifications, and allow them in your browser. Alerts also always appear in your dashboard.</p></details>
+      <details><summary data-i="idx.q5">Does it cost anything?</summary><p data-i="idx.a5">No. It is free to use, with no ads and no tracking.</p></details>
     </div>
   </div>
 </section>
 </main>
 
-<script src="/site.js?v=3"></script>
+<script src="/i18n.js?v=5"></script><script src="/site.js?v=5"></script>
 <script>
 // The plate types a sample number into itself once, then stops.
 (() => {

@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#ffffff"><meta name="robots" content="noindex">
+<title>Remove my vehicle number - VehicleAssist</title><meta data-doctitle="rm.title">
+<link rel="manifest" href="/manifest.webmanifest"><link rel="stylesheet" href="/style.css?v=4">
+</head><body><div class="wrap">
+<h1 data-i="rm.title">Remove my vehicle number</h1>
+<p class="sub" data-i="rm.p"></p>
+<div class="card">
+  <form id="f">
+    <label for="n" data-i="rm.num">Vehicle number</label>
+    <input id="n" type="text" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="MH12AB1234" required>
+    <button class="btn block" style="margin-top:14px" data-i="rm.go">Remove my number</button>
+    <div id="out"></div>
+  </form>
+</div>
+<script src="/i18n.js?v=5"></script>
+<script>
+const out=document.getElementById('out');
+let last=null;
+function show(){ if(!last)return; out.innerHTML='<div class="msg '+last.cls+'"></div>'; out.firstChild.textContent=last.text(); }
+window.addEventListener('langchange',show);
+document.getElementById('f').onsubmit=async e=>{e.preventDefault();
+  const r=await fetch('/api/remove-number',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({number:document.getElementById('n').value})});
+  const j=await r.json().catch(()=>({}));
+  if(r.ok) last={cls:'ok',text:()=>I18N.t(j.registered?'rm.reg':'rm.done')};
+  else last={cls:'err',text:()=>I18N.tErr(j.error)};
+  show();};
+</script>
+</div><script src="/site.js?v=5"></script></body></html>

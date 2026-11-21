@@ -2,42 +2,86 @@
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#ffffff">
-<title>Log in - Vehicle Assistant</title><link rel="manifest" href="/manifest.webmanifest"><link rel="stylesheet" href="/style.css?v=3">
+<title>Log in - VehicleAssist</title><meta data-doctitle="lg.title"><link rel="manifest" href="/manifest.webmanifest"><link rel="stylesheet" href="/style.css?v=4">
 </head><body><div class="wrap">
 <h1 id="title"></h1>
 <p class="sub" id="sub"></p>
 <div class="card">
   <div class="tabs">
-    <button class="btn sm" id="tLogin" type="button">Log in</button>
-    <button class="btn sm ghost" id="tReg" type="button">Create account</button>
+    <button class="btn sm" id="tLogin" type="button" data-i="lg.tabin">Log in</button>
+    <button class="btn sm ghost" id="tReg" type="button" data-i="btn.create">Create account</button>
   </div>
   <form id="f">
-    <div id="nameBox" class="hide"><label for="name" id="nameLbl">Your name</label><input id="name" type="text" autocomplete="name"></div>
-    <label for="phone">Phone number</label><input id="phone" type="tel" autocomplete="tel" required>
-    <label for="pw">Password</label><input id="pw" type="password" minlength="6" required>
+    <div id="nameBox" class="hide"><label for="name" id="nameLbl" data-i="lg.name">Your name</label><input id="name" type="text" autocomplete="name"></div>
+    <label for="phone" data-i="lg.phone">Phone number</label><input id="phone" type="tel" autocomplete="tel" required>
+    <label for="pw" data-i="lg.pw">Password</label><input id="pw" type="password" minlength="6" required>
     <button class="btn block" id="go" style="margin-top:16px">Log in</button>
     <div id="out"></div>
   </form>
+  <p class="meta" id="forgotRow" style="margin:14px 0 0"><a href="#" id="forgot" data-i="lg.forgot">Forgot your password?</a></p>
 </div>
-<p class="meta">Your phone number stays private. It is never shown to people who contact you.</p>
+
+<div class="card hide" id="resetCard">
+  <h2 style="margin-bottom:6px" data-i="rs.title">Reset your password</h2>
+  <p class="meta" id="resetHelp" style="margin-top:0"></p>
+  <form id="rf1">
+    <label for="rphone" data-i="lg.phone">Phone number</label><input id="rphone" type="tel" autocomplete="tel" required>
+    <button class="btn block" id="rsend" style="margin-top:14px" data-i="rs.send">Email me a code</button>
+  </form>
+  <form id="rf2" class="hide">
+    <label for="rcode" data-i="rs.code">6-digit code</label><input id="rcode" type="text" inputmode="numeric" maxlength="6" autocomplete="one-time-code" required>
+    <label for="rpw" data-i="rs.newpw">New password</label><input id="rpw" type="password" minlength="6" autocomplete="new-password" required>
+    <button class="btn block" id="rgo" style="margin-top:14px" data-i="rs.go">Change password</button>
+  </form>
+  <div id="rout"></div>
+  <p class="meta" style="margin:14px 0 0"><a href="#" id="rback" data-i="rs.back">Back to log in</a></p>
+</div>
+<p class="meta" data-i="lg.note">Your phone number stays private. It is never shown to people who contact you.</p>
+<script src="/i18n.js?v=5"></script>
 <script>
 const role=location.pathname.startsWith('/provider')?'provider':'owner';
 const $=id=>document.getElementById(id);
-$('title').textContent=role==='provider'?'Service provider':'Vehicle owner';
-$('sub').textContent=role==='provider'?'Manage customers and send service reminders and updates.':'Keep your vehicle connected. People can reach you without seeing your phone number.';
-$('nameLbl').textContent=role==='provider'?'Business name':'Your name';
+const T=(k,v)=>I18N.t(k,v), E=m=>I18N.tErr(m);
+function heads(){$('title').textContent=T(role==='provider'?'lg.provider':'lg.owner');
+$('sub').textContent=T(role==='provider'?'lg.subp':'lg.subo');
+$('nameLbl').textContent=T(role==='provider'?'lg.biz':'lg.name');
+$('go').textContent=T(mode==='login'?'lg.tabin':'btn.create');
+if(!$('resetCard').classList.contains('hide'))resetHelp();}
+window.addEventListener('langchange',heads);
 fetch('/api/me').then(r=>r.ok?r.json():null).then(u=>{if(u)location.href=u.next});
 let mode='login';
+heads();
 function setMode(m){mode=m;
   $('nameBox').classList.toggle('hide',m==='login');
-  $('go').textContent=m==='login'?'Log in':'Create account';
+  $('go').textContent=T(m==='login'?'lg.tabin':'btn.create');
   $('tLogin').classList.toggle('ghost',m!=='login');$('tReg').classList.toggle('ghost',m==='login');
+  $('forgotRow').classList.toggle('hide',m!=='login');
   $('pw').autocomplete=m==='login'?'current-password':'new-password';$('out').innerHTML='';}
+
+// ---- forgot password (email code; works if the owner verified an email in their dashboard) ----
+let emailOn=true;
+function resetHelp(){$('resetHelp').textContent=T(emailOn?'rs.help1':'rs.help2');}
+const note=(cls,t)=>{$('rout').innerHTML='<div class="msg '+cls+'"></div>';$('rout').firstChild.textContent=t;};
+function showReset(on){$('resetCard').classList.toggle('hide',!on);$('f').parentElement.classList.toggle('hide',on);}
+$('forgot').onclick=e=>{e.preventDefault();showReset(true);$('rphone').value=$('phone').value;$('rf1').classList.remove('hide');$('rf2').classList.add('hide');$('rout').innerHTML='';
+  fetch('/api/site').then(r=>r.json()).then(s=>{emailOn=!!s.emailEnabled;resetHelp();if(!emailOn)$('rsend').disabled=true;}).catch(()=>{});};
+$('rback').onclick=e=>{e.preventDefault();showReset(false);};
+$('rf1').onsubmit=async e=>{e.preventDefault();$('rsend').disabled=true;
+  const r=await fetch('/api/reset/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:$('rphone').value})});
+  if(r.ok){$('rf1').classList.add('hide');$('rf2').classList.remove('hide');$('rcode').focus();
+    note('ok',T('rs.sent'));}
+  else{const j=await r.json().catch(()=>({}));note('err',E(j.error));$('rsend').disabled=false;}};
+$('rf2').onsubmit=async e=>{e.preventDefault();$('rgo').disabled=true;
+  const r=await fetch('/api/reset/finish',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:$('rphone').value,code:$('rcode').value,password:$('rpw').value})});
+  const j=await r.json().catch(()=>({}));
+  if(r.ok){showReset(false);$('phone').value=$('rphone').value;$('pw').value='';
+    $('out').innerHTML='<div class="msg ok"></div>';$('out').firstChild.textContent=T('rs.done');}
+  else{note('err',E(j.error));$('rgo').disabled=false;}};
 $('tLogin').onclick=()=>setMode('login');$('tReg').onclick=()=>setMode('register');
 $('f').onsubmit=async e=>{e.preventDefault();$('go').disabled=true;
   const r=await fetch('/api/'+mode,{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({name:$('name').value,phone:$('phone').value,password:$('pw').value,role})});
   const j=await r.json().catch(()=>({}));
   if(r.ok)location.href=j.next;
-  else{$('out').innerHTML='<div class="msg err"></div>';$('out').firstChild.textContent=j.error||'Something went wrong';$('go').disabled=false;}};
-</script></div><script src="/site.js?v=3"></script></body></html>
+  else{$('out').innerHTML='<div class="msg err"></div>';$('out').firstChild.textContent=E(j.error);$('go').disabled=false;}};
+</script></div><script src="/site.js?v=5"></script></body></html>
